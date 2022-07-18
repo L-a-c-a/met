@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 	import Vis from './sat24/Vis.svelte'
 </script>
 
