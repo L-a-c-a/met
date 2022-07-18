@@ -25,13 +25,13 @@ import { onMount } from "svelte";
 
   let képtípus:string = "visual"  // visual vagy infraPolair
 
-  let fajlnevDatum:Date //= new Date()//.setTime(0) az szám
+  //let fajlnevDatum:Date //= new Date()//.setTime(0) az szám
   //fajlnevDatum.setSeconds(0, 0)
   const fajlnevDatumInic = () =>
   {
     let d:Date = new Date()
     d.setMinutes(Math.trunc(d.getMinutes()/5) * 5, 0, 0)
-    fajlnevDatum = d
+    //fajlnevDatum = d
     fájlnévDátum = d
     // {fajlnevDatum} nem műx (nem frissül), {fájlnévDátum} igen
     /***/ console.log("dátum inic")
@@ -42,10 +42,9 @@ import { onMount } from "svelte";
 
   const előzőTérkép = (event:Event) =>
   {
-          console.log(fajlnevDatum.getMinutes())
-    fajlnevDatum.setMinutes(fajlnevDatum.getMinutes()-5)
-         console.log(fajlnevDatum/*.getMinutes()*/)
-         fájlnévDátum=fajlnevDatum
+    let d:Date = fájlnévDátum
+    d.setMinutes(d.getMinutes()-5)
+    fájlnévDátum = d
   }
 
   const következőTérkép = (event:Event) =>
@@ -67,8 +66,8 @@ import { onMount } from "svelte";
   <button on:click="{előzőTérkép}">&lt;</button>
   <input value="{fájlnévDátum?.toISOString().substring(0, 16)}" />
   <button on:click="{következőTérkép}">&gt;</button>
-  <!---->      <button on:click="{()=>console.log(fajlnevDatum)}">{fajlnevDatum} {fajlnevIdo}</button>
-  <!---->      {fajlnevDatum?.getMinutes()} 
-  <!---->      {fajlnevDatum?.toISOString().substring(0, 16)}
+  <!----      <button on:click="{()=>console.log(fajlnevDatum)}">{fajlnevDatum} {fajlnevIdo}</button>
+  <!----     {fajlnevDatum?.getMinutes()} 
+  <!----     {fajlnevDatum?.toISOString().substring(0, 16)}
   <!----> {fájlnévDátum}
 </div>
