@@ -1,6 +1,8 @@
 <script lang="ts">
 import { onMount } from "svelte";
 
+import { Dátum } from "./def"   //NEM .ts !!!
+
   const datum2fajlnev = (d:Date):string =>
     { if (d) 
       {
@@ -9,10 +11,9 @@ import { onMount } from "svelte";
       }
       else return ""
     }
-    // d.toISOString().replaceAll(/[-T:]/g, '').substring(0, 11) + "0"
-    // dátum -> "éééé-hh-nnTóó:pp:....." -> "ééééhhnnóópp....." -> "ééééhhnnóóp0"
 
   let képtípus:string = "visual"  // visual vagy infraPolair
+  let lépésközPerc:number = 5
 
   let fájlnévDátum:Date
   
@@ -27,15 +28,28 @@ import { onMount } from "svelte";
   const előzőTérkép = (event:Event) =>
   {
     let d:Date = fájlnévDátum
-    d.setMinutes(d.getMinutes()-5)
+    d.setMinutes(d.getMinutes()-lépésközPerc)
     fájlnévDátum = d
   }
 
   const következőTérkép = (event:Event) =>
   {
     let d:Date = fájlnévDátum
-    d.setMinutes(d.getMinutes()+5)
+    d.setMinutes(d.getMinutes()+lépésközPerc)
     fájlnévDátum = d
+  }
+
+  let qDátum:Dátum = new Dátum
+  const qET = (event:Event) => //qDátum.vissza()
+  {
+    qDátum.vissza()
+    qDátum=qDátum   //enélkül nem megy utána a kijelzett idő
+  }
+
+  const qKT = (event:Event) => //qDátum.előre()
+  {
+    qDátum.előre()
+    qDátum=qDátum   //enélkül nem megy utána a kijelzett idő
   }
 
 </script>
@@ -50,8 +64,15 @@ import { onMount } from "svelte";
   <button on:click="{következőTérkép}">&gt;</button>
 </div>
 <div>
-  <img src="https://hu.sat24.com/image?type={képtípus}&region=hu&timestamp={datum2fajlnev(fájlnévDátum)}&anyadkess={new Date().getMilliseconds()}" alt="">
+  <button on:click="{qET}">&lt;</button>
+  {qDátum.toLocaleString('sv', {dateStyle: 'short', timeStyle: 'short' })} (helyi idő)   <!--HEKK! sv-vel vagy eo-val lesz iso-szerű, de eo-val nincs vezető nulla a dátumban -->
+  <button on:click="{qKT}">&gt;</button>
 </div>
+<div>
+  <img src="https://hu.sat24.com/image?type={képtípus}&region=hu&timestamp={datum2fajlnev(qDátum)}&anyadkess={new Date().getMilliseconds()}" alt="">
+</div>
+
+
 
 <style>
   label {display: inline;}  /* public/global.css-ben valamiért block van */
