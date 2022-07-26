@@ -23,7 +23,5 @@ export class Dátum extends Date
   előre(perc:number = this.lépésközPerc):void
   { this.setMinutes(this.getMinutes()+perc) }
 
-  //előzőTérkép(event:Event):void { this.vissza()}
-  //következőTérkép(event:Event):void { this.előre()}
-
+  urlrész():string {return this.toISOString().replace(/[-T:]/g, '').substring(0, 12)} // ééééhhnnóópp, UTC-ben, osztható 5-tel
 }
