@@ -15,7 +15,7 @@ export class Dátum extends Date
   }
 
   lekerekít(perc:number = this.pontosságPerc):void
-  { this.setMinutes(Math.trunc(this.getMinutes()/perc) * 5, 0, 0) }
+  { this.setMinutes(Math.trunc(this.getMinutes()/perc) * perc, 0, 0) }
 
   vissza(perc:number = this.lépésközPerc):void
   { this.setMinutes(this.getMinutes()-perc) }
