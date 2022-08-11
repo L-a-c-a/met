@@ -1,14 +1,22 @@
 <script lang="ts">
 
-import { Dátum } from "./def"   //NEM .ts !!!
+import { Dátum, MetnetDátum, SatDátum } from "./def"   //NEM .ts !!!
 
-  //let lap:string = "sat24"  // vagy metnet (és akkor kompozit vagy mix)
+  let lap:string = "sat24"  // vagy metnet (és akkor kompozit vagy mix)
 
-  let satKéptípus:string = "visual"  // visual vagy infraPolair
-  //let metnetKéptípus:string = "mix"   // kompozit vagy mix
+  let lapok =
+  { sat24: new SatDátum //(undefined, undefined, "infraPolair")
+  , metnet: new MetnetDátum
+  //... (többi laptípus)
+  }
 
-  let urlDátum:Dátum = new Dátum  //minden okosságot az osztály csinál
+  let urlDátum:Dátum =  lapok.sat24 //minden okosságot az osztály csinál
   //let lépésközPerc = urlDátum.lépésközPerc  //ide is kell egy???
+
+  $:{
+      urlDátum = lapok[lap]
+      //**/console.log("lapok[lap] változott: " + urlDátum.constructor.name )  //SatDátum vagy MetnetDátum (vagy...)
+    }
 
   const előzőTérkép = (e:Event) => //urlDátum.vissza()
   {
@@ -28,22 +36,27 @@ import { Dátum } from "./def"   //NEM .ts !!!
     urlDátum.lépésközPerc = lépésköz
   }
 
+  const alapra = (e:Event) =>
+  {
+    lapok[lap].alapra()
+    //if (lap=="sat24") lapok.sat24.alapra()
+    //if (lap=="metnet") lapok.metnet.alapra()
+    ////...  (amíg jobb ötlet nem lesz)
+    lapok = lapok
+  }
+
   let intervallum:NodeJS.Timer
   let animSeb = 1
   $: animKockahossz = 1000 / animSeb
   let visszaSzürke = false
   let álljSzürke = true
   let előreSzürke = false
-/*
-  const indít = (előjel:number) =>
-  {
-    intervallum = setInterval(előjel<0 ? ()=>urlDátum.vissza() : ()=>urlDátum.előre(), animKockahossz)
-  }
-*/
+
   const indítVissza = () => 
   {
     intervallum = setInterval(()=>{ urlDátum.vissza(); urlDátum=urlDátum }, animKockahossz) 
     álljSzürke = false
+    visszaSzürke = true
     előreSzürke = true
   }
   const indítElőre = () => 
@@ -51,7 +64,8 @@ import { Dátum } from "./def"   //NEM .ts !!!
     intervallum = setInterval(()=>{ urlDátum.előre(); urlDátum=urlDátum }, animKockahossz)
     álljSzürke = false
     visszaSzürke = true
-  }
+    előreSzürke = true
+ }
   const állj = () =>
   {
     clearInterval(intervallum)
@@ -63,21 +77,17 @@ import { Dátum } from "./def"   //NEM .ts !!!
 </script>
 
 <div>
-<!--
   <input type="radio" id="sat" bind:group={lap} value="sat24" checked>  <label for="sat">Sat24</label>
   {#if lap == "sat24"}
--->
-    <input type="radio" id="viz" bind:group={satKéptípus} name="feny" value="visual" checked>  <label for="viz">Látható</label>
-    <input type="radio" id="inf" bind:group={satKéptípus} name="feny" value="infraPolair">     <label for="inf">Infravörös</label>
-<!--
+    <input type="radio" id="viz" bind:group={urlDátum.képtípus} name="feny" value="visual" checked>  <label for="viz">Látható</label>
+    <input type="radio" id="inf" bind:group={urlDátum.képtípus} name="feny" value="infraPolair">     <label for="inf">Infravörös</label>
   {/if}
   <br />
   <input type="radio" id="metnet" bind:group={lap} value="metnet">      <label for="metnet">Metnet</label>
   {#if lap == "metnet"}
-    <input type="radio" id="komp" bind:group={metnetKéptípus} value="kompozit"> <label for="komp">Kompozit</label>
-    <input type="radio" id="mix" bind:group={metnetKéptípus} value="mix" checked>       <label for="mix">Mix</label>
+    <input type="radio" id="komp" bind:group={urlDátum.képtípus} value="kompozit"> <label for="komp">Kompozit</label>
+    <input type="radio" id="mix" bind:group={urlDátum.képtípus} value="mix" checked>       <label for="mix">Mix</label>
   {/if}
--->
 </div>
 <div>
   lépésköz
@@ -91,7 +101,7 @@ import { Dátum } from "./def"   //NEM .ts !!!
     <option value="6000">100 óra :-/</option>
     <option value="60000">1000 óra :-/</option>
   </select>  ({urlDátum.pontosságPerc} perccel osztható)
-  <button on:click="{()=>urlDátum = new Dátum}">alapra</button>
+  <button on:click="{alapra}">alapra</button>
 </div>
 <div>
   <button on:click="{előzőTérkép}">&lt;</button>
@@ -105,21 +115,11 @@ import { Dátum } from "./def"   //NEM .ts !!!
   <button on:click="{indítElőre}" disabled={előreSzürke}>&gt;&gt;</button>
 </div>
 <div>
-<!--
-  {#if lap == "sat24"}
--->
-    <img src="https://hu.sat24.com/image?type={satKéptípus}&region=hu&timestamp={urlDátum.urlrész()}&anyadkess={new Date().getMilliseconds()}" alt="">
-<!--
-  {/if}
-  {#if lap == "metnet"}
-    {#if metnetKéptípus = "mix"}
-      <img src="https://www.metnet.hu/img/radar_metnet/radarmix.jpg?date={urlDátum.urlrész()}" alt=""> <!-- nem jó, ez helyi idő! de mindegy, ilyen kép úgyis csak egy van... vagymittomén - ->
-    {/if}
-  {/if}
--->
+  <img class=terkep src="{urlDátum.url()}" alt="">
 </div>
 
 
 <style>
   label {display: inline;}  /* public/global.css-ben valamiért block van */
+  img.terkep {max-width: 80%; height: auto;}
 </style>
