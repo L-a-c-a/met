@@ -33,6 +33,15 @@ export class Dátum extends Date
   előre(perc:number = this.lépésközPerc):void
   { this.setMinutes(this.getMinutes()+perc) }
 
+  nincsTovábbVissza():boolean
+  {
+    return false
+  }
+  nincsTovábbElőre():boolean //nem megyünk a jövőbe
+  {
+    return this > new Date
+  }
+
   url():string { return "" }
 }
 

@@ -21,27 +21,28 @@ import { Dátum, MetnetDátum, SatDátum } from "./def"   //NEM .ts !!!
   const előzőTérkép = (e:Event) => //urlDátum.vissza()
   {
     urlDátum.vissza()
+    visszaSzürke = urlDátum.nincsTovábbVissza()
+    előreSzürke = urlDátum.nincsTovábbElőre()
     urlDátum=urlDátum   //enélkül nem megy utána a kijelzett idő -- lefordítódik valami $$invalidate -ra
   }
 
   const következőTérkép = (e:Event) => //urlDátum.előre()
   {
     urlDátum.előre()
+    visszaSzürke = urlDátum.nincsTovábbVissza()
+    előreSzürke = urlDátum.nincsTovábbElőre()
     urlDátum=urlDátum   //enélkül nem megy utána a kijelzett idő
   }
 
   const lépésközBeáll = (e:Event) => // <select> on:change hívja
   {
-    let lépésköz:number = +(e.target as HTMLInputElement).value  // e.target.value is működne, de a vscode panaszkodik
+    let lépésköz:number = +(e.target as HTMLInputElement).value  // ts-ben e.target.value nem műx
     urlDátum.lépésközPerc = lépésköz
   }
 
   const alapra = (e:Event) =>
   {
     lapok[lap].alapra()
-    //if (lap=="sat24") lapok.sat24.alapra()
-    //if (lap=="metnet") lapok.metnet.alapra()
-    ////...  (amíg jobb ötlet nem lesz)
     lapok = lapok
   }
 
@@ -52,26 +53,40 @@ import { Dátum, MetnetDátum, SatDátum } from "./def"   //NEM .ts !!!
   let álljSzürke = true
   let előreSzürke = false
 
+  // az időzítő hajtogatja végre:
+  const animálVissza = () => 
+  { 
+    urlDátum.vissza()
+    urlDátum=urlDátum
+    if (urlDátum.nincsTovábbVissza()) állj()
+  }
+  const animálElőre = () => 
+  { 
+    urlDátum.előre()
+    urlDátum=urlDátum
+    if (urlDátum.nincsTovábbElőre()) állj()
+  }
+
   const indítVissza = () => 
   {
-    intervallum = setInterval(()=>{ urlDátum.vissza(); urlDátum=urlDátum }, animKockahossz) 
+    intervallum = setInterval(animálVissza, animKockahossz) 
     álljSzürke = false
     visszaSzürke = true
     előreSzürke = true
   }
   const indítElőre = () => 
   {
-    intervallum = setInterval(()=>{ urlDátum.előre(); urlDátum=urlDátum }, animKockahossz)
+    intervallum = setInterval(animálElőre, animKockahossz)
     álljSzürke = false
     visszaSzürke = true
     előreSzürke = true
- }
+  }
   const állj = () =>
   {
     clearInterval(intervallum)
-    visszaSzürke = false
+    visszaSzürke = urlDátum.nincsTovábbVissza()
     álljSzürke = true
-    előreSzürke = false
+    előreSzürke = urlDátum.nincsTovábbElőre()
   }
 
 </script>
@@ -104,9 +119,9 @@ import { Dátum, MetnetDátum, SatDátum } from "./def"   //NEM .ts !!!
   <button on:click="{alapra}">alapra</button>
 </div>
 <div>
-  <button on:click="{előzőTérkép}">&lt;</button>
+  <button on:click="{előzőTérkép}" disabled={visszaSzürke}>&lt;</button>
   {urlDátum.toLocaleString('sv', {dateStyle: 'short', timeStyle: 'short' })} (helyi idő)   <!--HEKK! sv-vel vagy eo-val lesz iso-szerű, de eo-val nincs vezető nulla a dátumban -->
-  <button on:click="{következőTérkép}">&gt;</button>
+  <button on:click="{következőTérkép}" disabled={előreSzürke}>&gt;</button>
 </div>
 <div>
   animáció: <input type="number" size="4" min=1 bind:value={animSeb} /> kocka/mp, azaz egy kocka {animKockahossz} ezredmp <br />
