@@ -21,16 +21,16 @@ import { Dátum, MetnetDátum, SatDátum } from "./def"   //NEM .ts !!!
   const előzőTérkép = (e:Event) => //urlDátum.vissza()
   {
     urlDátum.vissza()
-    visszaSzürke = urlDátum.nincsTovábbVissza()
-    előreSzürke = urlDátum.nincsTovábbElőre()
+    //visszaSzürke = urlDátum.nincsTovábbVissza()
+    //előreSzürke = urlDátum.nincsTovábbElőre()
     urlDátum=urlDátum   //enélkül nem megy utána a kijelzett idő -- lefordítódik valami $$invalidate -ra
   }
 
   const következőTérkép = (e:Event) => //urlDátum.előre()
   {
     urlDátum.előre()
-    visszaSzürke = urlDátum.nincsTovábbVissza()
-    előreSzürke = urlDátum.nincsTovábbElőre()
+    //visszaSzürke = urlDátum.nincsTovábbVissza()
+    //előreSzürke = urlDátum.nincsTovábbElőre()
     urlDátum=urlDátum   //enélkül nem megy utána a kijelzett idő
   }
 
@@ -84,24 +84,28 @@ import { Dátum, MetnetDátum, SatDátum } from "./def"   //NEM .ts !!!
   const állj = () =>
   {
     clearInterval(intervallum)
-    visszaSzürke = urlDátum.nincsTovábbVissza()
+    visszaSzürke = false   //urlDátum.nincsTovábbVissza()
     álljSzürke = true
-    előreSzürke = urlDátum.nincsTovábbElőre()
+    előreSzürke = false   //urlDátum.nincsTovábbElőre()
   }
 
 </script>
 
 <div>
-  <input type="radio" id="sat" bind:group={lap} value="sat24" checked>  <label for="sat">Sat24</label>
+  <input type="radio" id="sat" bind:group={lap} value="sat24" checked>  <label for="sat"><b>Sat24 </b></label>
   {#if lap == "sat24"}
+  (
     <input type="radio" id="viz" bind:group={urlDátum.képtípus} name="feny" value="visual" checked>  <label for="viz">Látható</label>
     <input type="radio" id="inf" bind:group={urlDátum.képtípus} name="feny" value="infraPolair">     <label for="inf">Infravörös</label>
+  )
   {/if}
   <br />
-  <input type="radio" id="metnet" bind:group={lap} value="metnet">      <label for="metnet">Metnet</label>
+  <input type="radio" id="metnet" bind:group={lap} value="metnet">      <label for="metnet"><b>Metnet</b></label>
   {#if lap == "metnet"}
+  (
     <input type="radio" id="komp" bind:group={urlDátum.képtípus} value="kompozit"> <label for="komp">Kompozit</label>
     <input type="radio" id="mix" bind:group={urlDátum.képtípus} value="mix" checked>       <label for="mix">Mix</label>
+  )
   {/if}
 </div>
 <div>

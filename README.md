@@ -1,3 +1,22 @@
+# Csicsamentes meteorológiai térkép-megjelenítő program
+
+Fapados megjelenítő a sat24 műholdképeihez és a metnet radarképeihez, az ezeken a lapokon körérakott mindenféleségek nélkül. De az animálást ("hurokfilm-lejátszást", ahogy a met.hu nevezi) még tudja.
+
+[Működésben](https://laca-met.netlify.app/)
+
+**Típus:** pl. Sat24 vagy Metnet vagy OMSZ vagy...  
+**Altípus:** a típuson belül, pl. Sat24-nél látható vagy infravörös.  
+A típust balra fent egy függőleges rádiógombsorral lehet kiválasztani. A kiválasztott típus mellett vízszintes rádiógombsorról lehet az altípust kiválasztani.
+
+` `  
+` `  
+` `  
+
+---
+
+Innentől a svelte sablonprojekt eredeti README.md-je
+
+---
 # This repo is no longer maintained. Consider using `npm init vite` and selecting the `svelte` option or — if you want a full-fledged app framework and don't mind using pre-1.0 software — use [SvelteKit](https://kit.svelte.dev), the official application framework for Svelte.
 
 ---

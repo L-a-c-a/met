@@ -47,6 +47,14 @@ export class Dátum extends Date
 
 export class SatDátum extends Dátum
 {
+  /*
+  constructor (pontosságPerc:number = 15, lépésközPerc:number = pontosságPerc, képtípus:string = "visual")
+  { 
+    super()
+    this.képtípus = képtípus
+  }
+  */
+
   urlrész():string {return this.toISOString().replace(/[-T:]/g, '').substring(0, 12)} // ééééhhnnóópp, UTC-ben, osztható 5-tel
 
   url():string
