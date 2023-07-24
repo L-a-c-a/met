@@ -89,6 +89,24 @@ import { Dátum, MetnetDátum, SatDátum } from "./def"   //NEM .ts !!!
     előreSzürke = false   //urlDátum.nincsTovábbElőre()
   }
 
+  let üzenet = "___"
+  let talált:Date = null
+
+  const képBetöltve = (e:Event) =>
+  {
+    urlDátum.képBetöltve(e.target as HTMLImageElement)
+    //urlDátum=urlDátum  ...helyett:
+    üzenet = urlDátum.üzenet
+    talált = urlDátum.talált
+  }
+
+  const képHiba = (e:Event) =>
+  {
+    urlDátum.képHiba()
+    üzenet = urlDátum.üzenet
+    talált = urlDátum.talált
+  }
+
 </script>
 
 <div>
@@ -134,11 +152,19 @@ import { Dátum, MetnetDátum, SatDátum } from "./def"   //NEM .ts !!!
   <button on:click="{indítElőre}" disabled={előreSzürke}>&gt;&gt;</button>
 </div>
 <div>
-  <img class=terkep src="{urlDátum.url()}" alt="">
+  <img class=terkep src="{urlDátum.url()}" alt="" on:load={képBetöltve} on:error={képHiba}>
+</div>
+<div class=opc>
+  {üzenet} {talált}
 </div>
 
 
 <style>
   label {display: inline;}  /* public/global.css-ben valamiért block van */
-  img.terkep {max-width: 80%; height: auto;}
+  img.terkep {max-width: 100%; height: auto;}
+  div.opc {display: none;}
+  @media screen and (min-width: 1024px)
+  { img.terkep {max-width: 80%; height: auto;} 
+    div.opc {display: initial; color: lightgray;} /* lehet, mástól kéne függővé tenni */
+  }
 </style>

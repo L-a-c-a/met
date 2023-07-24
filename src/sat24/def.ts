@@ -7,12 +7,12 @@ export class Dátum extends Date
   lépésközPerc:number
   képtípus:string
 
-  constructor (pontosságPerc:number = 5, lépésközPerc:number = pontosságPerc, képtípus:string = "visual")
+  constructor (pontosságPerc:number = 5, lépésközPerc:number = pontosságPerc, képtípus:string = null)
   {
     super()
     this.pontosságPerc = pontosságPerc
     this.lépésközPerc = lépésközPerc
-    this.képtípus = képtípus
+    //this.képtípus = képtípus   kell egyáltalán ide? csak ha minden leszármazottnak van ilyenje
     this.lekerekít()
   }
 
@@ -39,23 +39,40 @@ export class Dátum extends Date
   }
   nincsTovábbElőre():boolean //nem megyünk a jövőbe
   {
-    return this > new Date
+    return this >= new Dátum
   }
 
   url():string { return "" }
+
+  üzenet:string// = "üz"  //??
+
+  talált:Date // sikeres képbetöltés után annak ideje, sikertelen után null (falsszerű)
+
+  képBetöltve(kép:HTMLImageElement)
+  {
+    console.log(this.képtípus+" kép betöltve")
+    this.üzenet = `betöltve (${kép.naturalWidth}x${kép.naturalHeight})`
+    this.talált = this   // sat24-nél nem biztos, lehet, hogy 1*1-es kép jött
+  }
+
+  képHiba()
+  {
+    console.log("képhiba")
+    this.üzenet = "nincs"
+    this.talált = null
+  }
+
 }
 
 export class SatDátum extends Dátum
 {
-  /*
   constructor (pontosságPerc:number = 15, lépésközPerc:number = pontosságPerc, képtípus:string = "visual")
   { 
     super()
     this.képtípus = képtípus
   }
-  */
 
-  urlrész():string {return this.toISOString().replace(/[-T:]/g, '').substring(0, 12)} // ééééhhnnóópp, UTC-ben, osztható 5-tel
+  private urlrész():string {return this.toISOString().replace(/[-T:]/g, '').substring(0, 12)} // ééééhhnnóópp, UTC-ben, osztható 5-tel
 
   url():string
   {
@@ -70,6 +87,15 @@ export class SatDátum extends Dátum
     //** */console.log("képtípus "+this.képtípus)
     //** */console.log(this)
   }
+
+  képBetöltve(kép:HTMLImageElement)
+  {
+    if (kép.naturalWidth>1)
+      super.képBetöltve(kép)
+    else
+      this.képHiba()
+  }
+
 }
 
 export class MetnetDátum extends Dátum
@@ -93,9 +119,11 @@ export class MetnetDátum extends Dátum
   private uPerc() { return (this.getMinutes()+"").padStart(2, '0') }
 
   private képtípusok =
-  { kompozit: ()=>`https://www.metnet.hu/img/radar_metnet/${this.uEv()}/${this.uHo()}/${this.uNap()}/composite_${this.uEv()}${this.uHo()}${this.uNap()}_${this.uOra()}${this.uPerc()}.jpg`
+  { kompozit: ()=>`https://www.metnet.hu/img/radar_metnet/${this.uEv()}/${this.uHo()}/${this.uNap()}/composite_${this.uEv()}${this.uHo()}${this.uNap()}_${this.uOra()}${this.uPerc()}.jpg?anyadkess=${new Date().getMilliseconds()}`
+  // itt is kell az anyádkess, mert a semmit (404) is kesseli!
   , mix: ()=>`https://www.metnet.hu/img/radar_metnet/radarmix.jpg?date=${this.uEv()}${this.uHo()}${this.uNap()}${this.uOra()}${this.uPerc()}`
   }
 
   url():string { return this.képtípusok[this.képtípus]() }
+
 }
