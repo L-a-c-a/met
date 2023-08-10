@@ -16,22 +16,31 @@ import { Dátum, MetnetDátum, SatDátum } from "./def"   //NEM .ts !!!
   $:{
       urlDátum = lapok[lap]
       //**/console.log("lapok[lap] változott: " + urlDátum.constructor.name )  //SatDátum vagy MetnetDátum (vagy...)
+      megjelenőDátum = dátumMegjelenít(urlDátum)
     }
 
-  const előzőTérkép = (e:Event) => //urlDátum.vissza()
+  let megjelenőDátum = "0000-00-00 00:00"
+  const dátumMegjelenít = (d:Dátum):string => d.toLocaleString('sv', {dateStyle: 'short', timeStyle: 'short' })
+   // HEKK! sv-vel vagy eo-val lesz iso-szerű, de eo-val nincs vezető nulla a dátumban
+
+  const előzőTérkép = (e?:Event) => //urlDátum.vissza()
   {
     urlDátum.vissza()
     //visszaSzürke = urlDátum.nincsTovábbVissza()
     //előreSzürke = urlDátum.nincsTovábbElőre()
     urlDátum=urlDátum   //enélkül nem megy utána a kijelzett idő -- lefordítódik valami $$invalidate -ra
+    megjelenőDátum = dátumMegjelenít(urlDátum)
+    talált = urlDátum.talált
   }
 
-  const következőTérkép = (e:Event) => //urlDátum.előre()
+  const következőTérkép = (e?:Event) => //urlDátum.előre()
   {
     urlDátum.előre()
     //visszaSzürke = urlDátum.nincsTovábbVissza()
     //előreSzürke = urlDátum.nincsTovábbElőre()
     urlDátum=urlDátum   //enélkül nem megy utána a kijelzett idő
+    megjelenőDátum = dátumMegjelenít(urlDátum)
+    talált = urlDátum.talált
   }
 
   const lépésközBeáll = (e:Event) => // <select> on:change hívja
@@ -44,9 +53,22 @@ import { Dátum, MetnetDátum, SatDátum } from "./def"   //NEM .ts !!!
   {
     lapok[lap].alapra()
     lapok = lapok
+    /***/ console.log("alapra:"+urlDátum)
+        //***/ console.log("alapra talált:"+urlDátum.talált)
+        //***/ var i=1
+    /*
+    while (!urlDátum.talált)
+    { 
+    /*** / console.log(":"+urlDátum)
+    /*** / console.log(" talált:"+urlDátum.talált  +"/"+ talált)
+      előzőTérkép()
+      /*** / i++; if (i>10) break
+    }
+    */
+    visszaAzUtsóig()
   }
 
-  let intervallum:NodeJS.Timer
+  let intervallum:ReturnType<typeof setInterval> //NodeJS.Timer
   let animSeb = 1
   $: animKockahossz = 1000 / animSeb
   let visszaSzürke = false
@@ -60,10 +82,13 @@ import { Dátum, MetnetDátum, SatDátum } from "./def"   //NEM .ts !!!
     urlDátum=urlDátum
     if (urlDátum.nincsTovábbVissza()) állj()
   }
+  let utsóTalálat:Date|null=null
   const animálElőre = () => 
   { 
     urlDátum.előre()
     urlDátum=urlDátum
+    /**/ console.log ("animálElőre talált:", urlDátum.talált)
+    if (urlDátum.talált) utsóTalálat = urlDátum.talált
     if (urlDátum.nincsTovábbElőre()) állj()
   }
 
@@ -87,13 +112,15 @@ import { Dátum, MetnetDátum, SatDátum } from "./def"   //NEM .ts !!!
     visszaSzürke = false   //urlDátum.nincsTovábbVissza()
     álljSzürke = true
     előreSzürke = false   //urlDátum.nincsTovábbElőre()
+    /**/ console.log ("állj:", utsóTalálat, urlDátum)
   }
 
   let üzenet = "___"
-  let talált:Date = null
+  let talált:Date|null = null
 
   const képBetöltve = (e:Event) =>
   {
+    /***/ console.log("on:load elsült")
     urlDátum.képBetöltve(e.target as HTMLImageElement)
     //urlDátum=urlDátum  ...helyett:
     üzenet = urlDátum.üzenet
@@ -102,9 +129,27 @@ import { Dátum, MetnetDátum, SatDátum } from "./def"   //NEM .ts !!!
 
   const képHiba = (e:Event) =>
   {
+    /***/ console.log("on:error elsült")
     urlDátum.képHiba()
     üzenet = urlDátum.üzenet
     talált = urlDátum.talált
+  }
+
+  const visszaAzUtsóig = () =>
+  {
+    let biztonságiHatár=100
+    intervallum = setInterval
+    ( () =>
+      {
+        urlDátum=urlDátum
+        /**  */ console.log(urlDátum.függőben, urlDátum.talált, biztonságiHatár)
+        if (--biztonságiHatár===0) clearInterval(intervallum) 
+        if (urlDátum.függőben) return   //ha nem töltődött még be a térkép, és nem is derült ki, hogy nincs, akkor ebben a körben nem csinálunk semmit
+        if (urlDátum.talált) /* akkor kész vagyunk */ clearInterval(intervallum) 
+        else előzőTérkép()
+      }
+    , 200
+    )
   }
 
 </script>
@@ -142,7 +187,8 @@ import { Dátum, MetnetDátum, SatDátum } from "./def"   //NEM .ts !!!
 </div>
 <div>
   <button on:click="{előzőTérkép}" disabled={visszaSzürke}>&lt;</button>
-  {urlDátum.toLocaleString('sv', {dateStyle: 'short', timeStyle: 'short' })} (helyi idő)   <!--HEKK! sv-vel vagy eo-val lesz iso-szerű, de eo-val nincs vezető nulla a dátumban -->
+  <!--{urlDátum.toLocaleString('sv', {dateStyle: 'short', timeStyle: 'short' })} (helyi idő)   HEKK! sv-vel vagy eo-val lesz iso-szerű, de eo-val nincs vezető nulla a dátumban -->
+  {megjelenőDátum} (helyi idő)
   <button on:click="{következőTérkép}" disabled={előreSzürke}>&gt;</button>
 </div>
 <div>
