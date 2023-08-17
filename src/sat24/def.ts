@@ -11,10 +11,11 @@ export class Dátum extends Date
   lépésközPerc:number
   képtípus:string
 
-  függőben: Date|null   // változásnál nemnullra kell állítani, és az aszinkron műveletek (on:load, on:error) nullázzák le
+  függőben?: Date|null  // változásnál nemnullra kell állítani, és az aszinkron műveletek (on:load, on:error) nullázzák le
                         //  hátha jó lesz valamire, hogy éppen Date
+                        //  Date|null|undefined
 
-  constructor (pontosságPerc:number = 5, lépésközPerc:number = pontosságPerc, képtípus:string|null = null)
+  constructor (pontosságPerc:number = 5, lépésközPerc:number = pontosságPerc, képtípus?:string)
   {
     super()
     this.pontosságPerc = pontosságPerc
@@ -30,8 +31,6 @@ export class Dátum extends Date
     this.lépésközPerc = lépésközPerc
     this.setTime(Date.now())
     this.lekerekít()
-    //while(!this.talált) this.vissza() itt nem jó, mert csak a Vis-ben vannak a hozzávalók (itt végtelen ciklus lett, mert az itteni vissza() nem állítja be a talált-ot)
-    //                                  ^^ ez hülyeség, a Vis-ben is végtelen ciklus lett, mert nem várja meg, míg betöltődik a kép, és .talált null maradt
     this.függőben=this
     //** */ this.visszaAzUtsóig()
   }
@@ -58,32 +57,11 @@ export class Dátum extends Date
     return this >= new Dátum
   }
 
-  /*  itt nem jó
-  visszaAzUtsóig()
-  {
-    let biztonságiHatár=10
-    const intervallum:NodeJS.Timer = setInterval
-    ( () =>
-      {
-        /**  * / console.log(this.függőben, this.talált, biztonságiHatár)
-        biztonságiHatár-=1; if (biztonságiHatár===0) clearInterval(intervallum) 
-        if (this.függőben) return   //ha nem töltődött még be a térkép, és nem is derült ki, hogy nincs, akkor ebben a körben nem csinálunk semmit
-        if (this.talált) /* akkor kész vagyunk * / clearInterval(intervallum) 
-        else 
-        {
-          this.vissza()
-        }
-      }
-    , 1000
-    )
-  }
-  ****/
-
   url():string { return "" }
 
   üzenet:string// = "üz"  //??
 
-  talált:Date|null // sikeres képbetöltés után annak ideje, sikertelen után null (falsszerű)
+  talált?:Date|null  // sikeres képbetöltés után annak ideje, sikertelen után null (falsszerű)
 
   képBetöltve(kép:HTMLImageElement)
   {
@@ -125,6 +103,7 @@ export class SatDátum extends Dátum
     this.képtípus = képtípus
     //** */console.log("képtípus "+this.képtípus)
     //** */console.log(this)
+    //KÉNE: beállítani a lápésközt 5-re, vagy 15-re, attl függ, milyenje van a sat24-nek
   }
 
   képBetöltve(kép:HTMLImageElement)
@@ -145,11 +124,15 @@ export class SatDátum extends Dátum
   protected uNap() { return (this.getDate()+"").padStart(2, '0') }
   protected uOra() { return (this.getHours()+"").padStart(2, '0') }
   protected uPerc() { return (this.getMinutes()+"").padStart(2, '0') }
+  private   uUTCNap() { return (this.getUTCDate()+"").padStart(2, '0') }
+  private   uUTCOra() { return (this.getUTCHours()+"").padStart(2, '0') }
 
   protected uDátum() { return `${this.uEv()}/${this.uHo()}/${this.uNap()}` }  // éééé/hh/nn
-  protected uIdő()   { return `${this.uEv()}${this.uHo()}${this.uNap()}_${this.uOra()}${this.uPerc()}` }
+  protected uIdő()   { return `${this.uEv()}${this.uHo()}${this.uNap()}_${this.uOra()}${this.uPerc()}` }  // ééééhhnn_óópp
+  protected uUTCIdő(){ return `${this.uEv()}${this.uHo()}${this.uUTCNap()}_${this.uUTCOra()}${this.uPerc()}` }  // ééééhhnn_óópp
 
 }
+
 export class MetnetDátum extends RadarDátum
 {
   constructor (pontosságPerc:number = 5, lépésközPerc:number = pontosságPerc, képtípus:string = "kompozit")
@@ -172,5 +155,25 @@ export class MetnetDátum extends RadarDátum
   }
 
   url():string { return this.képtípusok[this.képtípus]() }
+
+}
+
+export class MetDátum extends RadarDátum
+{
+  constructor (pontosságPerc:number = 10, lépésközPerc:number = pontosságPerc, képtípus:string = "W")  // W: országos, E: ÉNy, F: DNy, H: ÉK, G: DK
+  { 
+    super(pontosságPerc, lépésközPerc)
+    this.képtípus = képtípus
+  }
+
+  alapra(pontosságPerc=10, lépésközPerc=pontosságPerc, képtípus="W"): void 
+  {
+    super.alapra(pontosságPerc, lépésközPerc)
+    this.képtípus = képtípus
+  }
+
+  url() { return `https://www.met.hu/img/Rcc${this.képtípus}/Rcc${this.képtípus}${this.uUTCIdő()}.jpg`}
+
+  //KÉNE: nincsTovábbVissza(), mert nem sokra visszamenőleg vannak csak térképek
 
 }

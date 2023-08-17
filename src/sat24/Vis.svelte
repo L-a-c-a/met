@@ -1,12 +1,13 @@
 <script lang="ts">
 
-import { Dátum, MetnetDátum, SatDátum } from "./def"   //NEM .ts !!!
+import { Dátum, MetnetDátum, SatDátum, MetDátum } from "./def"   //NEM .ts !!!
 
   let lap:string = "sat24"  // vagy metnet (és akkor kompozit vagy mix)
 
   let lapok =
   { sat24: new SatDátum //(undefined, undefined, "infraPolair")
   , metnet: new MetnetDátum
+  , met: new MetDátum
   //... (többi laptípus)
   }
 
@@ -54,17 +55,6 @@ import { Dátum, MetnetDátum, SatDátum } from "./def"   //NEM .ts !!!
     lapok[lap].alapra()
     lapok = lapok
     /***/ console.log("alapra:"+urlDátum)
-        //***/ console.log("alapra talált:"+urlDátum.talált)
-        //***/ var i=1
-    /*
-    while (!urlDátum.talált)
-    { 
-    /*** / console.log(":"+urlDátum)
-    /*** / console.log(" talált:"+urlDátum.talált  +"/"+ talált)
-      előzőTérkép()
-      /*** / i++; if (i>10) break
-    }
-    */
     visszaAzUtsóig()
   }
 
@@ -82,7 +72,7 @@ import { Dátum, MetnetDátum, SatDátum } from "./def"   //NEM .ts !!!
     urlDátum=urlDátum
     if (urlDátum.nincsTovábbVissza()) állj()
   }
-  let utsóTalálat:Date|null=null
+  let utsóTalálat:Date|null|undefined
   const animálElőre = () => 
   { 
     urlDátum.előre()
@@ -116,7 +106,7 @@ import { Dátum, MetnetDátum, SatDátum } from "./def"   //NEM .ts !!!
   }
 
   let üzenet = "___"
-  let talált:Date|null = null
+  let talált:Date|null|undefined 
 
   const képBetöltve = (e:Event) =>
   {
@@ -143,7 +133,7 @@ import { Dátum, MetnetDátum, SatDátum } from "./def"   //NEM .ts !!!
       {
         urlDátum=urlDátum
         /**  */ console.log(urlDátum.függőben, urlDátum.talált, biztonságiHatár)
-        if (--biztonságiHatár===0) clearInterval(intervallum) 
+        if ((--biztonságiHatár)<=0) clearInterval(intervallum) 
         if (urlDátum.függőben) return   //ha nem töltődött még be a térkép, és nem is derült ki, hogy nincs, akkor ebben a körben nem csinálunk semmit
         if (urlDátum.talált) /* akkor kész vagyunk */ clearInterval(intervallum) 
         else előzőTérkép()
@@ -163,11 +153,24 @@ import { Dátum, MetnetDátum, SatDátum } from "./def"   //NEM .ts !!!
   )
   {/if}
   <br />
+
   <input type="radio" id="metnet" bind:group={lap} value="metnet">      <label for="metnet"><b>Metnet</b></label>
   {#if lap == "metnet"}
   (
     <input type="radio" id="komp" bind:group={urlDátum.képtípus} value="kompozit"> <label for="komp">Kompozit</label>
     <input type="radio" id="mix" bind:group={urlDátum.képtípus} value="mix" checked>       <label for="mix">Mix</label>
+  )
+  {/if}
+  <br />
+
+  <input type="radio" id="met" bind:group={lap} value="met">            <label for="met"><b>OMSZ</b></label>
+  {#if lap == "met"}
+  (
+    <input type="radio" id="orsz" bind:group={urlDátum.képtípus} value="W" checked> <label for="orsz">Országos</label>
+    <input type="radio" id="eny"  bind:group={urlDátum.képtípus} value="E">         <label for="eny">ÉNy</label>
+    <input type="radio" id="dny"  bind:group={urlDátum.képtípus} value="F">         <label for="dny">DNy</label>
+    <input type="radio" id="ek"   bind:group={urlDátum.képtípus} value="H">         <label for="ek">ÉK</label>
+    <input type="radio" id="dk"   bind:group={urlDátum.képtípus} value="G">         <label for="dk">DK</label>
   )
   {/if}
 </div>
@@ -187,7 +190,6 @@ import { Dátum, MetnetDátum, SatDátum } from "./def"   //NEM .ts !!!
 </div>
 <div>
   <button on:click="{előzőTérkép}" disabled={visszaSzürke}>&lt;</button>
-  <!--{urlDátum.toLocaleString('sv', {dateStyle: 'short', timeStyle: 'short' })} (helyi idő)   HEKK! sv-vel vagy eo-val lesz iso-szerű, de eo-val nincs vezető nulla a dátumban -->
   {megjelenőDátum} (helyi idő)
   <button on:click="{következőTérkép}" disabled={előreSzürke}>&gt;</button>
 </div>
