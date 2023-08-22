@@ -21,7 +21,7 @@ import { Dátum, MetnetDátum, SatDátum, MetDátum } from "./def"   //NEM .ts !
     }
 
   let megjelenőDátum = "0000-00-00 00:00"
-  const dátumMegjelenít = (d:Dátum):string => d.toLocaleString('sv', {dateStyle: 'short', timeStyle: 'short' })
+  const dátumMegjelenít = (d?:Date|null):string => d?.toLocaleString('sv', {dateStyle: 'short', timeStyle: 'short' }) ?? "0000-00-00 00:00"
    // HEKK! sv-vel vagy eo-val lesz iso-szerű, de eo-val nincs vezető nulla a dátumban
 
   const előzőTérkép = (e?:Event) => //urlDátum.vissza()
@@ -31,7 +31,7 @@ import { Dátum, MetnetDátum, SatDátum, MetDátum } from "./def"   //NEM .ts !
     //előreSzürke = urlDátum.nincsTovábbElőre()
     urlDátum=urlDátum   //enélkül nem megy utána a kijelzett idő -- lefordítódik valami $$invalidate -ra
     megjelenőDátum = dátumMegjelenít(urlDátum)
-    talált = urlDátum.talált
+    talált = dátumMegjelenít(urlDátum.talált)
   }
 
   const következőTérkép = (e?:Event) => //urlDátum.előre()
@@ -41,7 +41,7 @@ import { Dátum, MetnetDátum, SatDátum, MetDátum } from "./def"   //NEM .ts !
     //előreSzürke = urlDátum.nincsTovábbElőre()
     urlDátum=urlDátum   //enélkül nem megy utána a kijelzett idő
     megjelenőDátum = dátumMegjelenít(urlDátum)
-    talált = urlDátum.talált
+    talált = dátumMegjelenít(urlDátum.talált)
   }
 
   const lépésközBeáll = (e:Event) => // <select> on:change hívja
@@ -106,7 +106,7 @@ import { Dátum, MetnetDátum, SatDátum, MetDátum } from "./def"   //NEM .ts !
   }
 
   let üzenet = "___"
-  let talált:Date|null|undefined 
+  let talált:string //Date|null|undefined 
 
   const képBetöltve = (e:Event) =>
   {
@@ -114,7 +114,7 @@ import { Dátum, MetnetDátum, SatDátum, MetDátum } from "./def"   //NEM .ts !
     urlDátum.képBetöltve(e.target as HTMLImageElement)
     //urlDátum=urlDátum  ...helyett:
     üzenet = urlDátum.üzenet
-    talált = urlDátum.talált
+    talált = dátumMegjelenít(urlDátum.talált)
   }
 
   const képHiba = (e:Event) =>
@@ -122,20 +122,26 @@ import { Dátum, MetnetDátum, SatDátum, MetDátum } from "./def"   //NEM .ts !
     /***/ console.log("on:error elsült")
     urlDátum.képHiba()
     üzenet = urlDátum.üzenet
-    talált = urlDátum.talált
+    talált = dátumMegjelenít(urlDátum.talált)
   }
 
   const visszaAzUtsóig = () =>
   {
+    let lépésközMentés = urlDátum.lépésközPerc
+    urlDátum.lépésközPerc = urlDátum.pontosságPerc // 5
     let biztonságiHatár=100
-    intervallum = setInterval
+    let intervallum /* kell belőle lokális */ = setInterval
     ( () =>
       {
         urlDátum=urlDátum
-        /**  */ console.log(urlDátum.függőben, urlDátum.talált, biztonságiHatár)
+        /**  */ console.log(dátumMegjelenít(urlDátum.függőben), dátumMegjelenít(urlDátum.talált), biztonságiHatár)
         if ((--biztonságiHatár)<=0) clearInterval(intervallum) 
         if (urlDátum.függőben) return   //ha nem töltődött még be a térkép, és nem is derült ki, hogy nincs, akkor ebben a körben nem csinálunk semmit
-        if (urlDátum.talált) /* akkor kész vagyunk */ clearInterval(intervallum) 
+        if (urlDátum.talált) /* akkor kész vagyunk */
+        { 
+          clearInterval(intervallum)
+          urlDátum.lépésközPerc = lépésközMentés
+        }
         else előzőTérkép()
       }
     , 200
@@ -157,20 +163,28 @@ import { Dátum, MetnetDátum, SatDátum, MetDátum } from "./def"   //NEM .ts !
   <input type="radio" id="metnet" bind:group={lap} value="metnet">      <label for="metnet"><b>Metnet</b></label>
   {#if lap == "metnet"}
   (
-    <input type="radio" id="komp" bind:group={urlDátum.képtípus} value="kompozit"> <label for="komp">Kompozit</label>
-    <input type="radio" id="mix" bind:group={urlDátum.képtípus} value="mix" checked>       <label for="mix">Mix</label>
+    <input type="radio" id="komp" bind:group={urlDátum.képtípus} value="kompozit" checked> <label for="komp">Kompozit</label>
+    <input type="radio" id="mix" bind:group={urlDátum.képtípus} value="mix">               <label for="mix">Mix</label>
+    <input type="radio" id="mh" bind:group={urlDátum.képtípus} value="muhold">             <label for="mh">Műhold</label>
   )
   {/if}
   <br />
 
   <input type="radio" id="met" bind:group={lap} value="met">            <label for="met"><b>OMSZ</b></label>
   {#if lap == "met"}
-  (
-    <input type="radio" id="orsz" bind:group={urlDátum.képtípus} value="W" checked> <label for="orsz">Országos</label>
-    <input type="radio" id="eny"  bind:group={urlDátum.képtípus} value="E">         <label for="eny">ÉNy</label>
-    <input type="radio" id="dny"  bind:group={urlDátum.képtípus} value="F">         <label for="dny">DNy</label>
-    <input type="radio" id="ek"   bind:group={urlDátum.képtípus} value="H">         <label for="ek">ÉK</label>
-    <input type="radio" id="dk"   bind:group={urlDátum.képtípus} value="G">         <label for="dk">DK</label>
+  ( radar:
+    <input type="radio" id="orsz" bind:group={urlDátum.képtípus} value="RccW" checked> <label for="orsz">Országos</label>
+    <input type="radio" id="eny"  bind:group={urlDátum.képtípus} value="RccE">         <label for="eny">ÉNy</label>
+    <input type="radio" id="dny"  bind:group={urlDátum.képtípus} value="RccF">         <label for="dny">DNy</label>
+    <input type="radio" id="ek"   bind:group={urlDátum.képtípus} value="RccH">         <label for="ek">ÉK</label>
+    <input type="radio" id="dk"   bind:group={urlDátum.képtípus} value="RccG">         <label for="dk">DK</label>
+    &nbsp; &nbsp; &nbsp; &nbsp;
+    műhold:
+    <input type="radio" id="v"    bind:group={urlDátum.képtípus} value="BMwA">         <label for="v">Látható</label>
+    <input type="radio" id="ir"   bind:group={urlDátum.képtípus} value="bMwA">         <label for="ir">Infravörös</label>
+    <input type="radio" id="euv"  bind:group={urlDátum.képtípus} value="BMnA">         <label for="euv">Eu nappali</label>
+    <input type="radio" id="eui"  bind:group={urlDátum.képtípus} value="bMw9">         <label for="eui">Eu infra</label>
+    <input type="radio" id="euc"  bind:group={urlDátum.képtípus} value="BMwC">         <label for="euc">Eu látható-infra kompozit</label>
   )
   {/if}
 </div>
