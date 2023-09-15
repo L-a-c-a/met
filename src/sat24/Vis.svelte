@@ -59,7 +59,7 @@ import { Dátum, MetnetDátum, SatDátum, MetDátum } from "./def"   //NEM .ts !
   }
 
   let intervallum:ReturnType<typeof setInterval> //NodeJS.Timer
-  let animSeb = 1
+  let animSeb = 2
   $: animKockahossz = 1000 / animSeb
   let visszaSzürke = false
   let álljSzürke = true
@@ -151,27 +151,48 @@ import { Dátum, MetnetDátum, SatDátum, MetDátum } from "./def"   //NEM .ts !
 </script>
 
 <div>
+  <!------------------- sat24   (lÁtható, infravÖeös) ------------------------>
   <input type="radio" id="sat" bind:group={lap} value="sat24" checked>  <label for="sat"><b>Sat24 </b></label>
   {#if lap == "sat24"}
+  <span class="nagykep">
   (
     <input type="radio" id="viz" bind:group={urlDátum.képtípus} name="feny" value="visual" checked>  <label for="viz">Látható</label>
     <input type="radio" id="inf" bind:group={urlDátum.képtípus} name="feny" value="infraPolair">     <label for="inf">Infravörös</label>
   )
+  </span>
+  <span class="kiskep">
+    <select bind:value={urlDátum.képtípus}>
+      <option value="visual">Látható</option>
+      <option value="infraPolair">Infravörös</option>
+    </select>
+  </span>
   {/if}
-  <br />
+  <span class="nagykep"><br /></span>
 
+  <!------------------- metnet   (radar, műhold) ------------------------>
   <input type="radio" id="metnet" bind:group={lap} value="metnet">      <label for="metnet"><b>Metnet</b></label>
   {#if lap == "metnet"}
+  <span class="nagykep">
   (
     <input type="radio" id="komp" bind:group={urlDátum.képtípus} value="kompozit" checked> <label for="komp">Kompozit</label>
     <input type="radio" id="mix" bind:group={urlDátum.képtípus} value="mix">               <label for="mix">Mix</label>
     <input type="radio" id="mh" bind:group={urlDátum.képtípus} value="muhold">             <label for="mh">Műhold</label>
   )
+   </span>
+  <span class="kiskep">
+    <select bind:value={urlDátum.képtípus}>
+      <option value="kompozit">Kompozit</option>
+      <option value="mix">Mix</option>
+      <option value="muhold">Műhold</option>
+    </select>
+  </span>
   {/if}
-  <br />
+  <span class="nagykep"><br /></span>
 
+  <!------------------- met   (radar, műhold) ------------------------>
   <input type="radio" id="met" bind:group={lap} value="met">            <label for="met"><b>OMSZ</b></label>
   {#if lap == "met"}
+  <span class="nagykep">
   ( radar:
     <input type="radio" id="orsz" bind:group={urlDátum.képtípus} value="RccW" checked> <label for="orsz">Országos</label>
     <input type="radio" id="eny"  bind:group={urlDátum.képtípus} value="RccE">         <label for="eny">ÉNy</label>
@@ -186,8 +207,28 @@ import { Dátum, MetnetDátum, SatDátum, MetDátum } from "./def"   //NEM .ts !
     <input type="radio" id="eui"  bind:group={urlDátum.képtípus} value="bMw9">         <label for="eui">Eu infra</label>
     <input type="radio" id="euc"  bind:group={urlDátum.képtípus} value="BMwC">         <label for="euc">Eu látható-infra kompozit</label>
   )
+   </span>
+  <span class="kiskep">
+    <select bind:value={urlDátum.képtípus}>
+      <optgroup label="radar">
+        <option value="RccW">Országos</option>
+        <option value="RccE">ÉNy</option>
+        <option value="RccF">DNy</option>
+        <option value="RccH">ÉK</option>
+        <option value="RccG">DK</option>
+      </optgroup>
+      <optgroup label="műhold">
+        <option value="BMwA">Látható</option>
+        <option value="bMwA">Infravörös</option>
+        <option value="BMnA">Eu nappali</option>
+        <option value="bMw9">Eu infra</option>
+        <option value="BMwC">Eu látható-infra kompozit</option>
+      </optgroup>
+    </select>
+  </span>
   {/if}
 </div>
+
 <div>
   lépésköz
   <select value={urlDátum.lépésközPerc+""} on:change="{lépésközBeáll}">  <!-- bind:value nem műx; kell a +"" -->
@@ -225,8 +266,11 @@ import { Dátum, MetnetDátum, SatDátum, MetDátum } from "./def"   //NEM .ts !
   label {display: inline;}  /* public/global.css-ben valamiért block van */
   img.terkep {max-width: 100%; height: auto;}
   div.opc {display: none;}
+  span.nagykep {display: none;}
   @media screen and (min-width: 1024px)
   { img.terkep {max-width: 80%; height: auto;} 
     div.opc {display: initial; color: lightgray;} /* lehet, mástól kéne függővé tenni */
+    span.nagykep {display: initial;}
+    span.kiskep {display: none;}
   }
 </style>

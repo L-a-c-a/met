@@ -177,12 +177,21 @@ export class MetDátum extends RadarDátum
     //if (képtípus[1] == 'M') if (képtípus[2] == 'n' || képtípus[3] != 'A') this.képKiterj = "png"
   }
 
+    /* 
   private képKiterj()
   {
     if (this.képtípus[2] == 'n') return "png"
-    //*if (this.képtípus[1] == 'M')*/ if (this.képtípus[3] == '9') return "png"
+    //*if (this.képtípus[1] == 'M')* / if (this.képtípus[3] == '9') return "png"
     return "jpg"
   }
+    */
+
+  private képKiterj = () =>
+  ( {
+      BMnA: "png"
+    }[this.képtípus] || "jpg"
+  )
+  // switch helyett  [JavaScript Switch Expressions](https://medium.com/@numberpicture/nugget-javascript-switch-expressions-e3bf059eefb0)
 
   alapra(pontosságPerc=10, lépésközPerc=pontosságPerc, képtípus="W"): void    //műholdra nem jó ez a 10
   {
