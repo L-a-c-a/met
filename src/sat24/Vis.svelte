@@ -79,7 +79,13 @@ import { Dátum, MetnetDátum, SatDátum, MetDátum } from "./def"   //NEM .ts !
     urlDátum=urlDátum
     /**/ console.log ("animálElőre talált:", urlDátum.talált)
     if (urlDátum.talált) utsóTalálat = urlDátum.talált
-    if (urlDátum.nincsTovábbElőre()) állj()
+    if (urlDátum.nincsTovábbElőre())
+    {
+      állj()
+      if (utsóTalálat) urlDátum.beállít(utsóTalálat)
+      //urlDátum=urlDátum   nem ez volt a hiba
+    }
+
   }
 
   const indítVissza = () => 
@@ -146,12 +152,17 @@ import { Dátum, MetnetDátum, SatDátum, MetDátum } from "./def"   //NEM .ts !
       }
     , 200
     )
+    /*
+    urlDátum.visszaAzUtsóig()   //nem jött be
+    megjelenőDátum = urlDátum.megjelenít(urlDátum)
+    talált = urlDátum.megjelenít(urlDátum.talált)
+    */
   }
 
 </script>
 
 <div>
-  <!------------------- sat24   (lÁtható, infravÖeös) ------------------------>
+  <!------------------- sat24   (látható, infravörös) ------------------------>
   <input type="radio" id="sat" bind:group={lap} value="sat24" checked>  <label for="sat"><b>Sat24 </b></label>
   {#if lap == "sat24"}
   <span class="nagykep">

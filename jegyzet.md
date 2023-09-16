@@ -38,4 +38,16 @@ KÉNE: Sok a rádiógomb; az egyik szintet át kéne alakítani pl. `select`re, 
 ```
 vagy `value=` és `on:change=`, ha a `bind:value` megint nem műx... de műx.  
 
+*--------------- nagyképernyő, kisképernyő -------------*
+
+`animálElőre` a végén az utolsó találtra áll; új metódus: `beállít(d:Date):void`  
+tanulságos: `this.talált = this` nem jó, mert a hivatkozást adja értékül, nem a dátumot  
+`this.talált = new Date(this)` kell
+
+`visszaAzUtsóig` az osztály alá költözik ???  
+nem jó, a .svelte-be kell, mert csak úgy sül el `on:load`, `on:error`
+
+*--------------- animálElőre az utolsó találtra áll -------------*
+
+
 

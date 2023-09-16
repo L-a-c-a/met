@@ -12,8 +12,8 @@ export class Dátum extends Date
   képtípus:string
 
   függőben?: Date|null  // változásnál nemnullra kell állítani, és az aszinkron műveletek (on:load, on:error) nullázzák le
-                        //  hátha jó lesz valamire, hogy éppen Date
-                        //  Date|null|undefined
+                        //  hátha jó lesz valamire, hogy éppen Date - !! de ha ezt kihasználom, akkor nem =this , hanem =new Date(this) !!
+                        //  Date|null|undefined  (a kérdőjeltől lesz |undefined)
 
   constructor (pontosságPerc:number = 5, lépésközPerc:number = pontosságPerc, képtípus?:string)
   {
@@ -38,9 +38,12 @@ export class Dátum extends Date
   lekerekít(perc:number = this.pontosságPerc):void
   { this.setMinutes(Math.trunc(this.getMinutes()/perc) * perc, 0, 0) }
 
+  beállít(d:Date):void
+  { this.setTime(d.getTime()) }
+
   vissza(perc:number = this.lépésközPerc):void
   { this.setMinutes(this.getMinutes()-perc) 
-    this.függőben=this
+    this.függőben=new Date(this)
   }
 
   előre(perc:number = this.lépésközPerc):void
@@ -62,13 +65,38 @@ export class Dátum extends Date
   üzenet:string// = "üz"  //??
 
   talált?:Date|null  // sikeres képbetöltés után annak ideje, sikertelen után null (falsszerű)
-                    // ha dátumMegjelenít egy itteni metódus lenne, akkor ennek Dátum-nak kellene lenni
+
+  /// ITT NEM JÓ, mert nem sül el on:load, on:error 
+  visszaAzUtsóig():void
+  {
+    let lépésközMentés = this.lépésközPerc
+    this.lépésközPerc = this.pontosságPerc // 5
+    let biztonságiHatár=100
+    let intervallum /* kell belőle lokális */ = setInterval
+    ( () =>
+      {
+        /**  */ console.log(this.megjelenít(this.függőben), this.megjelenít(this.talált), biztonságiHatár)
+        if ((--biztonságiHatár)<=0) clearInterval(intervallum) 
+        if (this.függőben) return   //ha nem töltődött még be a térkép, és nem is derült ki, hogy nincs, akkor ebben a körben nem csinálunk semmit
+        /**  */ console.log(this.megjelenít(this.függőben), this.megjelenít(this.talált), biztonságiHatár)
+        if (this.talált) /* akkor kész vagyunk */
+        { 
+          clearInterval(intervallum)
+          this.lépésközPerc = lépésközMentés
+        }
+        else this.vissza()
+      }
+    , 200
+    )
+  }
+
+  megjelenít(d?:Date|null):string { return d?.toLocaleString('sv', {dateStyle: 'short', timeStyle: 'short' }) ?? "0000-00-00 00:00" }
 
   képBetöltve(kép:HTMLImageElement)
   {
-    console.log(this.képtípus+" kép betöltve")
+    console.log(this.képtípus+" kép betöltve "+this.megjelenít(this))
     this.üzenet = `betöltve (${kép.naturalWidth}x${kép.naturalHeight})`
-    this.talált = this   // sat24-nél nem biztos, lehet, hogy 1*1-es kép jött
+    this.talált = new Date(this)   // sat24-nél nem biztos, lehet, hogy 1*1-es kép jött   // = this nem jó, mert a hivatkozást adja értékül, nem a dátumot
     this.függőben = null
   }
 
@@ -105,7 +133,7 @@ export class SatDátum extends Dátum
     //this.képtípus = képtípus    //éjjel önkicseszés
     //** */console.log("képtípus "+this.képtípus)
     //** */console.log(this)
-    //KÉNE: beállítani a lápésközt 5-re, vagy 15-re, attl függ, milyenje van a sat24-nek
+    //KÉNE: beállítani a lépésközt 5-re, vagy 15-re, attól függ, milyenje van a sat24-nek
   }
 
   képBetöltve(kép:HTMLImageElement)
