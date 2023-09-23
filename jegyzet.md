@@ -49,5 +49,13 @@ nem jó, a .svelte-be kell, mert csak úgy sül el `on:load`, `on:error`
 
 *--------------- animálElőre az utolsó találtra áll -------------*
 
+KÉNE: lap- és képtípus-váltásnál a képtípusra jellemző időzítéseket beállítani.  
+Van a `pontosságPerc` és kell még egy, ami megmondja, hogy óra hány perckor van az első térkép az órán belül, másképpen a térkép idejének (percben) a pontossággal veló osztásakor kapott maradék. Tehát ha :10-, :25-, :40-, :55-kor van térkép, akkor ez 10 (és a pontosság 15), mert `10 % 15 == 25 % 15 == ... == 10`.  
+(A `lépésközPerc` kézzel állítható a pontosság többszörösére. Változáskor be lehet állítani a pontosságra. [Ld. még.](https://stackoverflow.com/questions/2155909/how-can-i-disable-an-option-in-a-select-based-on-its-value-in-javascript))  
+sat24: {pontosság: 5, modulo: 0} (de van, hogy  15, 0)  
+metnet radar: 5,0  műhold 15,10  
+met radar: 10,0  műhold 15,10  
+
+A $: {,,,} elsül minden lap- és képtípusváltáskor. Lehet belőle hívni olyan metódust, ami a fentieket beállítja. (`típusváltás()`) (Mert különben nem tudom, hol kapom el a történést.)  
 
 

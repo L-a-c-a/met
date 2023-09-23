@@ -17,6 +17,7 @@ import { Dátum, MetnetDátum, SatDátum, MetDátum } from "./def"   //NEM .ts !
   $:{
       urlDátum = lapok[lap]
       //**/console.log("lapok[lap] változott: " + urlDátum.constructor.name )  //SatDátum vagy MetnetDátum (vagy...)
+      urlDátum.típusváltás()
       megjelenőDátum = dátumMegjelenít(urlDátum)
     }
 
