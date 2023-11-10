@@ -136,23 +136,29 @@ import { Dátum, MetnetDátum, SatDátum, MetDátum } from "./def"   //NEM .ts !
   {
     let lépésközMentés = urlDátum.lépésközPerc
     urlDátum.lépésközPerc = urlDátum.pontosságPerc // 5
+    urlDátum.típusváltásElnyom = true
     let biztonságiHatár=100
     let intervallum /* kell belőle lokális */ = setInterval
     ( () =>
       {
         urlDátum=urlDátum
-        /**  */ console.log(dátumMegjelenít(urlDátum.függőben), dátumMegjelenít(urlDátum.talált), biztonságiHatár)
-        if ((--biztonságiHatár)<=0) clearInterval(intervallum) 
+        /**  */ console.log(dátumMegjelenít(urlDátum.függőben), dátumMegjelenít(urlDátum.talált), biztonságiHatár, urlDátum.típusváltásElnyom)
+        if ((--biztonságiHatár)<=0) 
+        { clearInterval(intervallum) 
+          urlDátum.típusváltásElnyom = false
+        }
         if (urlDátum.függőben) return   //ha nem töltődött még be a térkép, és nem is derült ki, hogy nincs, akkor ebben a körben nem csinálunk semmit
         if (urlDátum.talált) /* akkor kész vagyunk */
         { 
           clearInterval(intervallum)
           urlDátum.lépésközPerc = lépésközMentés
+          urlDátum.típusváltásElnyom = false
         }
         else előzőTérkép()
       }
     , 200
     )
+
     /*
     urlDátum.visszaAzUtsóig()   //nem jött be
     megjelenőDátum = urlDátum.megjelenít(urlDátum)

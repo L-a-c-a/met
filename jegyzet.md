@@ -56,6 +56,19 @@ sat24: {pontosság: 5, modulo: 0} (de van, hogy  15, 0)
 metnet radar: 5,0  műhold 15,10  
 met radar: 10,0  műhold 15,10  
 
-A $: {,,,} elsül minden lap- és képtípusváltáskor. Lehet belőle hívni olyan metódust, ami a fentieket beállítja. (`típusváltás()`) (Mert különben nem tudom, hol kapom el a történést.)  
+A $: {...} elsül minden lap- és képtípusváltáskor. Lehet belőle hívni olyan metódust, ami a fentieket beállítja. (`típusváltás()`) (Mert különben nem tudom, hol kapom el a történést.)  
 
+*--------------- Pontosság--eltolás modell 0.1 -------------*
 
+`  , "compilerOptions": { "strictNullChecks": true } /* én */`  
+egyelőre marad (strict-et akartam, de nem most akarok foglalkozni az ettől megjelent hibákkal)  
+[Unleashing the Power of TypeScript: Key Considerations in tsconfig](https://levelup.gitconnected.com/unleashing-the-power-of-typescript-key-considerations-in-tsconfig-1278312e7be0)
+
+A `lépésközPerc`-et is KÉNE képtípus-függővé tenni, hogy váltáskor változzon az is (pl. Metnet alatt Kompozit <-> Műhold)
+
+`percBeállít`: beállítja `pontosságPerc`-et és `eltolásPerc`-et. (`eltolásPerc` lett a modulo neve.)
+
+Pontosság--eltolás modellt használó osztályok (kellene ezeknek is egy normális név meg egy saját absztrakt osztály):  
+a pontosság, eltolás beállítását elvégzi egyrészt a konstruktor, másrészt `percBeállít()` (amit a típusváltás hív). Az `alapra`-nak már nem kell percekkel foglalkozni.
+
+*--------------- Pontosság--eltolás modell 0.2 -------------*

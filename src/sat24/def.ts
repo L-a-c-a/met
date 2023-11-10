@@ -1,6 +1,6 @@
 //osztályok, konstansok stb. definíciói
 
-// url-címbe hasból egy érték, kesselés ellen (lehetne metódus a Dátum-ban, de így kényelmesebb (nem kell this., lehet lambda))
+// url-címbe hasból egy érték, kesselés ellen (lehetne metódus a Dátum-ban, de így kényelmesebb (nem kell this., lehet lambda - amúgy is lehet, ld. képKiterj))
 const hasPar = ():string => //new Date().getMilliseconds()+""
                             Math.random()+""
 
@@ -10,6 +10,7 @@ export class Dátum extends Date
   pontosságPerc:number
   lépésközPerc:number
   képtípus:string
+  lépésközKéptípusSzerint = {}
 
   függőben?: Date|null  // változásnál nemnullra kell állítani, és az aszinkron műveletek (on:load, on:error) nullázzák le
                         //  hátha jó lesz valamire, hogy éppen Date - !! de ha ezt kihasználom, akkor nem =this , hanem =new Date(this) !!
@@ -18,6 +19,7 @@ export class Dátum extends Date
   constructor (pontosságPerc:number = 5, lépésközPerc:number = pontosságPerc, képtípus?:string)
   {
     super()
+    /* */ console.log(this.constructor.name, "konstruálódik")
     this.pontosságPerc = pontosságPerc
     this.lépésközPerc = lépésközPerc
     //this.képtípus = képtípus   kell egyáltalán ide? csak ha minden leszármazottnak van ilyenje
@@ -28,11 +30,10 @@ export class Dátum extends Date
   alapra(pontosságPerc:number = 5, lépésközPerc:number = pontosságPerc)
   {
     this.pontosságPerc = pontosságPerc
-    this.lépésközPerc = lépésközPerc
+      = lépésközPerc
     this.setTime(Date.now())
     this.lekerekít()
     this.függőben=this
-    //** */ this.visszaAzUtsóig()
   }
 
   lekerekít(perc:number = this.pontosságPerc):void
@@ -66,40 +67,18 @@ export class Dátum extends Date
 
   talált?:Date|null  // sikeres képbetöltés után annak ideje, sikertelen után null (falsszerű)
 
-  /// ITT NEM JÓ, mert nem sül el on:load, on:error 
-  //visszaAzUtsóig():void
-  //{
-  //  let lépésközMentés = this.lépésközPerc
-  //  this.lépésközPerc = this.pontosságPerc // 5
-  //  let biztonságiHatár=100
-  //  let intervallum /* kell belőle lokális */ = setInterval
-  //  ( () =>
-  //    {
-  //      /**  */ console.log(this.megjelenít(this.függőben), this.megjelenít(this.talált), biztonságiHatár)
-  //      if ((--biztonságiHatár)<=0) clearInterval(intervallum) 
-  //      if (this.függőben) return   //ha nem töltődött még be a térkép, és nem is derült ki, hogy nincs, akkor ebben a körben nem csinálunk semmit
-  //      /**  */ console.log(this.megjelenít(this.függőben), this.megjelenít(this.talált), biztonságiHatár)
-  //      if (this.talált) /* akkor kész vagyunk */
-  //      { 
-  //        clearInterval(intervallum)
-  //        this.lépésközPerc = lépésközMentés
-  //      }
-  //      else this.vissza()  //itt kéne elsülnie on:load-nak vagy on:error-nak, de nem sül el
-  //    }
-  //  , 200
-  //  )
-  //}
+  static megjelenít(d?:Date|null):string { return d?.toLocaleString('sv', {dateStyle: 'short', timeStyle: 'short' }) ?? "0000-00-00 00:00" }
 
-  megjelenít(d?:Date|null):string { return d?.toLocaleString('sv', {dateStyle: 'short', timeStyle: 'short' }) ?? "0000-00-00 00:00" }
+  típusváltásElnyom = false
 
   típusváltás()
   {
-    /* */ console.log(`típusváltás: ${this.constructor.name}/${this.képtípus} ${this.megjelenít(this)}`)
+    /* */ console.log(`típusváltás: ${this.constructor.name}/${this.képtípus} ${Dátum.megjelenít(this)} ${this.típusváltásElnyom?" elnyomva":""}`)
   }
 
   képBetöltve(kép:HTMLImageElement)
   {
-    console.log(this.képtípus+" kép betöltve "+this.megjelenít(this))
+    console.log(this.képtípus+" kép betöltve "+Dátum.megjelenít(this))
     this.üzenet = `betöltve (${kép.naturalWidth}x${kép.naturalHeight})`
     this.talált = new Date(this)   // sat24-nél nem biztos, lehet, hogy 1*1-es kép jött   // = this nem jó, mert a hivatkozást adja értékül, nem a dátumot
     this.függőben = null
@@ -121,6 +100,7 @@ export class SatDátum extends Dátum
   { 
     super()
     this.képtípus = képtípus
+    this.lépésközKéptípusSzerint[képtípus] = lépésközPerc
   }
 
   private urlrész():string {return this.toISOString().substring(0, 16).replace(/[-T:]/g, '') } // ééééhhnnóópp, UTC-ben, osztható 5-tel
@@ -152,7 +132,7 @@ export class SatDátum extends Dátum
 }
 
 /*nem export*/ abstract class RadarDátum extends Dátum   // olyan alosztályokhoz, amelyek .../éééé/hh/nn/...ééééhhnn_óópp... alakú url-t csinálnak, pl. metnet és met
-//                                                       // meg az olyanokhoz, amelyek használják a pontosság--modulo modellt
+//                                                       // meg az olyanokhoz, amelyek használják a pontosság--eltolás modellt
 {
 
   protected uEv() { return (this.getFullYear()+"")/*.padStart(4, '0')*/ }     // nem private, mert a mix-hez kellenek a MetnetDátum-nak
@@ -169,40 +149,60 @@ export class SatDátum extends Dátum
     // így is lehet, de toISOString-gel is, mint SatDátum-ban   (ISO: éééé-hh-nnTóó:pp:mp.eeeZ (UTC))
   protected uUTCIdő(){ return this.toISOString().substring(0, 16).replace(/[-:]/g, '').replace(/T/, '_') }
 
-  moduloPerc = 0    // pontosságPerc-enként vannak a térképek, de (n*pontosságPerc+moduloPerc)-kor
-  //                   pl. pontosságPerc=15, moduloPerc=10 ==> :10-, :25-, :40-, :55-kor vannak
+  eltolásPerc = 0    // pontosságPerc-enként vannak a térképek, de (n*pontosságPerc+eltolásPerc)-kor
+  //                    pl. pontosságPerc=15, eltolásPerc=10 ==> :10-, :25-, :40-, :55-kor vannak
 
-  lekerekít(perc: number = this.pontosságPerc, modulo:number = 0): void   // öröklődik úgy is, hogy nem ugyanannyi paramétere van
+  lekerekít(perc: number = this.pontosságPerc, eltolás:number = this.eltolásPerc??0): void   // öröklődik úgy is, hogy nem ugyanannyi paramétere van
   {
-    /**/console.log(this.megjelenít(this), perc, modulo);
-    const δ = (perc-modulo)%perc  // vagy magyarul: modulo ? perc-modulo : 0
+    /**/ /*console.trace();*/ console.log(this.constructor.name + "(RadarDátum).lekerekít:", Dátum.megjelenít(this), perc, eltolás);
+    const δ = (perc-eltolás)%perc  // vagy magyarul: eltolás ? perc-eltolás : 0
     
-    // lassan, érthetően, scalásan
+    // lassan, érthetően, funkcionálisan (scalásan)
     const e1 = this.getMinutes() + δ
     const e2 = (Math.trunc(e1/perc) * perc)
     const e3 = e2 - δ   // lehet negatív, de nem baj, a setMinutes okos
     /**/console.log(δ, e1, e2, e3)
     
     this.setMinutes(e3, 0, 0)
-    /**/console.log(this.megjelenít(this));
+    /**/console.log(Dátum.megjelenít(this));
           
   }
 
   típusváltás(): void 
   {
     super.típusváltás() 
+    /* */   console.log(this.típusváltásElnyom)
+    if (this.típusváltásElnyom) return
     this.percBeállít()   
-    this.lekerekít(this.pontosságPerc, this.moduloPerc)
+    this.lekerekít(this.pontosságPerc, this.eltolásPerc)
+    if (this.lépésközKéptípusSzerint[this.képtípus]) this.lépésközPerc = this.lépésközKéptípusSzerint[this.képtípus]
+    else
+    {
+      this.lépésközPerc = this.pontosságPerc
+      this.lépésközKéptípusSzerint[this.képtípus] = this.pontosságPerc
+    }
   }
 
+  /** típusváltás hívja (minden rádiógomb váltás) */
   abstract percBeállít():void
 
   constructor(pontosságPerc:number = 5, lépésközPerc:number = pontosságPerc)
   {
     super(pontosságPerc, lépésközPerc)
-    this.moduloPerc = 0
-  }
+    //this.lépésközKéptípusSzerint[képtípus] = lépésközPerc   nincs képtípus
+    this.eltolásPerc = 0
+      /**/console.log("RadarDátum konstr")
+}
 
+  alapra():void
+  {
+    this.percBeállít()
+    this.setTime(Date.now())
+    this.lekerekít()
+    this.függőben=this
+    /**/ console.log(this.constructor.name + "(RadarDátum).alapra:", this.pontosságPerc, this.lépésközPerc, this.eltolásPerc);
+  }
+  // lehetne super.alapra(this.pontosságPerc, this.lépésközPerc) - ez ugyanoda visszatenné ugyanazt
 
 }
 
@@ -212,17 +212,22 @@ export class MetnetDátum extends RadarDátum
   { 
     super(pontosságPerc, lépésközPerc)
     this.képtípus = képtípus
+    this.lépésközKéptípusSzerint[képtípus] = lépésközPerc
   }
 
+  /*
   alapra(pontosságPerc=5, lépésközPerc=pontosságPerc, képtípus:string = "kompozit"): void 
   {
     //super.alapra(pontosságPerc, lépésközPerc)     // műhold: :10, :25, :40, :55 !
     if (this.képtípus=='muhold') 
-      { super.alapra(5, 15); /*this.lépésközPerc=15*/ } // lehet 15, visszaAzUtsóig() menti, 5-re állítja és visszaállítja
+      { super.alapra(5, 15); //this.lépésközPerc=15
+        this.lépésközKéptípusSzerint[képtípus] = lépésközPerc
+      }
     else
       super.alapra(pontosságPerc, lépésközPerc)
     //this.képtípus = képtípus
   }
+  */
 
   private képtípusok =
   {                // .../éééé/hh/nn/composite_ééééhhnn_óópp.jpg
@@ -236,8 +241,8 @@ export class MetnetDátum extends RadarDátum
 
   percBeállít() 
   {
-    [this.pontosságPerc, this.moduloPerc] = (this.képtípus=='muhold') ? [15, 10] : [5, 0]
-    /**/ console.log(this.url())
+    [this.pontosságPerc, this.eltolásPerc] = (this.képtípus=='muhold') ? [15, 10] : [5, 0]
+    /**/ console.log("metnet percBeállít", this.url(), this.pontosságPerc, this.eltolásPerc)
   }
 
 }
@@ -246,10 +251,11 @@ export class MetDátum extends RadarDátum
 {
   //képKiterj = "jpg"
 
-  constructor (pontosságPerc:number = 5, lépésközPerc:number = pontosságPerc, képtípus:string = "RccW")  // W: országos, E: ÉNy, F: DNy, H: ÉK, G: DK
+  constructor (pontosságPerc:number = 10, lépésközPerc:number = pontosságPerc, képtípus:string = "RccW")  // W: országos, E: ÉNy, F: DNy, H: ÉK, G: DK
   { 
     super(pontosságPerc, lépésközPerc)
     this.képtípus = képtípus
+    this.lépésközKéptípusSzerint[képtípus] = lépésközPerc  //ehhez fontos, hogy pontosságPerc 10 legyen, a RccW-vel összhangban
     //if (képtípus[1] == 'M') if (képtípus[2] == 'n' || képtípus[3] != 'A') this.képKiterj = "png"
   }
 
@@ -265,25 +271,30 @@ export class MetDátum extends RadarDátum
   private képKiterj = () =>
   ( {
       BMnA: "png"
-    }[this.képtípus] || "jpg"
+    }[this.képtípus] || "jpg"   //azt hittem, változatosabb lesz
   )
   // switch helyett  [JavaScript Switch Expressions](https://medium.com/@numberpicture/nugget-javascript-switch-expressions-e3bf059eefb0)
 
+  /*
   alapra(pontosságPerc=10, lépésközPerc=pontosságPerc, képtípus="W"): void    //műholdra nem jó ez a 10
   {
     if (this.képtípus[0]=='R') 
       super.alapra(pontosságPerc, lépésközPerc)
     else
-      { super.alapra(5, 15); /*this.lépésközPerc=15*/ }
+      { super.alapra(5, 15); //this.lépésközPerc=15 
+        this.lépésközKéptípusSzerint[képtípus] = lépésközPerc
+      }
     //KÉNE: felülírni lekerekít() -t
     //this.képtípus = képtípus
   }
+  */
 
   url() { return `https://www.met.hu/img/${this.képtípus}/${this.képtípus}${this.uUTCIdő()}.${this.képKiterj()}`}
 
   percBeállít()
   {
-    [this.pontosságPerc, this.moduloPerc] = (this.képtípus[0]=='R') ? [10, 0] : [15, 10]
+    [this.pontosságPerc, this.eltolásPerc] = (this.képtípus[0]=='R') ? [10, 0] : [15, 10]
+    /**/ console.log("met percBeállít", this.url(), this.pontosságPerc, this.eltolásPerc)
   }
 
   //KÉNE: nincsTovábbVissza(), mert nem sokra visszamenőleg vannak csak térképek
